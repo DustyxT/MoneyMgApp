@@ -1,24 +1,24 @@
 Category,Type,Budget,Start Date,End Date
-Part Time Job,Income,85.0,2026-01-01,2026-12-31
-Other Income,Income,500.0,2026-01-01,2026-12-31
-Phone,Bills,100.0,2026-01-01,2026-12-31
-Internet,Bills,80.0,2026-01-01,2026-12-31
-Gas,Bills,100.0,2026-01-01,2026-12-31
-Water,Bills,50.0,2026-01-01,2026-12-31
-Rent,Expenses,1000.0,2026-01-01,2026-12-31
-Groceries,Expenses,500.0,2026-01-01,2026-12-31
-Gym,Expenses,50.0,2026-01-01,2026-12-31
-Insurance,Expenses,200.0,2026-01-01,2026-12-31
-Utilities,Expenses,300.0,2026-01-01,2026-12-31
-Eat Out,Expenses,300.0,2026-01-01,2026-12-31
-Subscriptions,Expenses,50.0,2026-01-01,2026-12-31
-Phone Bill,Expenses,200.0,2026-01-01,2026-12-31
-Gifts,Expenses,200.0,2026-01-01,2026-12-31
-Fuel,Expenses,200.0,2026-01-01,2026-12-31
-Shopping,Expenses,400.0,2026-01-01,2026-12-31
-Internet Bill,Expenses,80.0,2026-01-01,2026-12-31
-Home Deposit,Savings,1000.0,2026-01-01,2026-12-31
-Emergency,Savings,200.0,2026-01-01,2026-12-31
-Family Remittance,Savings,5000.0,2026-01-01,2026-12-31
-Car Loan,Debt,170.0,2026-01-01,2026-12-31
-Credit,Debt,500.0,2026-01-01,2026-12-31
+Part Time Job,Income,81.0,2026-02-23,2026-03-01
+Other Income,Income,50.0,2026-02-23,2026-03-01
+Phone,Bills,1.0,2026-02-23,2026-03-01
+Internet,Bills,1.0,2026-02-23,2026-03-01
+Gas,Bills,0.0,2026-02-23,2026-03-01
+Water,Bills,0.0,2026-02-23,2026-03-01
+Rent,Expenses,0.0,2026-02-23,2026-03-01
+Groceries,Expenses,10.0,2026-02-23,2026-03-01
+Gym,Expenses,5.0,2026-02-23,2026-03-01
+Insurance,Expenses,0.0,2026-02-23,2026-03-01
+Utilities,Expenses,0.0,2026-02-23,2026-03-01
+Eat Out,Expenses,5.0,2026-02-23,2026-03-01
+Subscriptions,Expenses,0.0,2026-02-23,2026-03-01
+Phone Bill,Expenses,0.0,2026-02-23,2026-03-01
+Gifts,Expenses,0.0,2026-02-23,2026-03-01
+Fuel,Expenses,0.0,2026-02-23,2026-03-01
+Shopping,Expenses,400.0,2026-02-23,2026-03-01
+Internet Bill,Expenses,80.0,2026-02-23,2026-03-01
+Home Deposit,Savings,0.0,2026-02-23,2026-03-01
+Emergency,Savings,5.0,2026-02-23,2026-03-01
+Family Remittance,Savings,5.0,2026-02-23,2026-03-01
+Car Loan,Debt,0.0,2026-02-23,2026-03-01
+Credit,Debt,0.0,2026-02-23,2026-03-01
