@@ -5,7 +5,8 @@ from datetime import datetime
 from models.schemas import WeeklyData, TransactionUpdate, Transaction
 from services.data_service import (
     get_weekly_data, save_weekly_transactions, get_week_start, 
-    get_week_label, load_transactions, add_transaction, delete_transaction
+    get_week_label, load_transactions, add_transaction, delete_transaction,
+    delete_transactions_by_week
 )
 import io
 import uuid
@@ -195,5 +196,24 @@ def get_transaction_history_weeks() -> dict:
             })
             
         return {"weeks": weeks, "count": len(weeks)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/week/{week_start}")
+def delete_week_transactions(week_start: str) -> dict:
+    """Delete all transactions for a specific week."""
+    try:
+        deleted_count = delete_transactions_by_week(week_start)
+        if deleted_count == 0:
+            raise HTTPException(status_code=404, detail="No transactions found for this week")
+        
+        return {
+            "success": True, 
+            "message": f"Deleted {deleted_count} transactions for week starting {week_start}",
+            "deleted_count": deleted_count
+        }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

@@ -106,6 +106,27 @@ def delete_transaction(transaction_id: str) -> bool:
     return False
 
 
+def delete_transactions_by_week(week_start: str) -> int:
+    """Delete all transactions for a given week. Returns count of deleted transactions."""
+    df = load_transactions()
+    if df.empty:
+        return 0
+    
+    # Parse week_start and calculate week_end
+    week_start_date = datetime.strptime(week_start, "%Y-%m-%d")
+    week_end_date = week_start_date + timedelta(days=6)
+    week_end = week_end_date.strftime("%Y-%m-%d")
+    
+    initial_len = len(df)
+    df = df[(df["Date"] < week_start) | (df["Date"] > week_end)]
+    deleted_count = initial_len - len(df)
+    
+    if deleted_count > 0:
+        save_transactions(df)
+    
+    return deleted_count
+
+
 def get_week_start(d: datetime) -> datetime:
     """Get Monday of the week containing date d."""
     return d - timedelta(days=d.weekday())

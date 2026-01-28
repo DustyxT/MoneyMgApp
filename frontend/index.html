@@ -396,50 +396,48 @@
                     </div>
                 </header>
 
-                <div class="transactions-container">
-                    <div class="transactions-filters">
-                        <button class="btn btn-secondary" id="open-calendar-btn" title="Pick week from calendar">
-                            <span>📅</span> Pick Week
-                        </button>
-                        <select id="manager-filter-type" class="select-input">
-                            <option value="">All Types</option>
-                            <option value="Income">Income</option>
-                            <option value="Bills">Bills</option>
-                            <option value="Expenses">Expenses</option>
-                            <option value="Savings">Savings</option>
-                            <option value="Debt">Debt</option>
-                        </select>
-                        <input type="date" id="manager-filter-start" class="date-input">
-                        <input type="date" id="manager-filter-end" class="date-input">
+                <!-- Manager Layout: Calendar + Table -->
+                <div class="manager-layout">
+                    <!-- Left: Inline Calendar -->
+                    <div class="manager-calendar-panel">
+                        <div class="calendar-card">
+                            <h3>📅 Select Week</h3>
+                            <div id="manager-calendar"></div>
+                            <p class="text-muted small mt-2">Green = weeks with data</p>
+                        </div>
                     </div>
-                    <div class="table-wrapper">
-                        <table class="data-table" id="manager-table">
-                            <thead>
-                                <tr>
-                                    <th>Date</th>
-                                    <th>Category</th>
-                                    <th>Type</th>
-                                    <th>Amount</th>
-                                    <th>Action</th>
-                                </tr>
-                            </thead>
-                            <tbody></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Calendar Modal -->
-            <div id="calendar-modal" class="modal hidden">
-                <div class="modal-content" style="max-width: 400px; padding: 20px;">
-                    <div class="modal-header">
-                        <h2>Select Week</h2>
-                        <button class="close-modal-btn" id="close-calendar-modal">&times;</button>
-                    </div>
-                    <div class="modal-body center-content">
-                        <div id="manager-calendar"></div>
-                        <p class="text-muted mt-3 small text-center">Green dots indicate saved data.<br>Click a date to
-                            filter transactions.</p>
+                    <!-- Right: Transactions List -->
+                    <div class="manager-transactions-panel">
+                        <div class="transactions-container">
+                            <div class="transactions-filters">
+                                <div class="selected-week-display" id="selected-week-display">
+                                    <span class="week-label">📅 All Transactions</span>
+                                </div>
+                                <select id="manager-filter-type" class="select-input">
+                                    <option value="">All Types</option>
+                                    <option value="Income">Income</option>
+                                    <option value="Bills">Bills</option>
+                                    <option value="Expenses">Expenses</option>
+                                    <option value="Savings">Savings</option>
+                                    <option value="Debt">Debt</option>
+                                </select>
+                            </div>
+                            <div class="table-wrapper">
+                                <table class="data-table" id="manager-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Category</th>
+                                            <th>Type</th>
+                                            <th>Amount</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -449,15 +447,34 @@
                 <header class="page-header">
                     <div class="header-left">
                         <h1>Transaction History</h1>
-                        <p class="header-subtitle">View saved weekly records</p>
+                        <p class="header-subtitle">View and manage saved weekly records</p>
                     </div>
                 </header>
 
-                <div class="calendar-wrapper center-content">
-                    <div id="history-calendar"></div>
-                    <div id="history- Legend" class="mt-4">
-                        <span class="badge badge-success">● Saved Data</span>
-                        <small class="text-muted ml-2">Click a green week to view details</small>
+                <div class="history-container">
+                    <div class="table-section">
+                        <div class="section-header">
+                            <h2><span class="section-icon">📜</span> Saved Weeks</h2>
+                        </div>
+                        <div class="table-wrapper">
+                            <table class="data-table" id="history-weeks-table">
+                                <thead>
+                                    <tr>
+                                        <th>Week</th>
+                                        <th>Transactions</th>
+                                        <th>Total Income</th>
+                                        <th>Total Expenses</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-weeks-body">
+                                    <!-- Rows populated by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div id="history-empty" class="empty-state hidden">
+                            <p>No saved weeks yet. Add transactions in the Manager tab to get started.</p>
+                        </div>
                     </div>
                 </div>
             </div>
