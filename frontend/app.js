@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initViewToggle();
     initBudgetDateInputs();
     initTransactionFilters();
+    initTransactionModal();
     initExportButton();
     initCalendarPickers();
 
@@ -346,8 +347,10 @@ function initNavigation() {
                 loadStatisticsData();
             } else if (page === 'budget') {
                 loadBudgetConfig();
-            } else if (page === 'transactions') {
+            } else if (page === 'manager') {
                 loadTransactionHistory();
+            } else if (page === 'history') {
+                loadHistoryWeeks();
             }
         });
     });
@@ -994,34 +997,250 @@ async function applyDatesToAll() {
 // ========================================
 // TRANSACTIONS
 // ========================================
+function initTransactionModal() {
+    const modal = document.getElementById('transaction-modal');
+    const addBtn = document.getElementById('add-transaction-btn');
+    const closeBtns = document.querySelectorAll('.close-modal, .close-modal-btn');
+    const form = document.getElementById('transaction-form');
+
+    // Open Modal
+    addBtn.addEventListener('click', () => {
+        // Reset form
+        form.reset();
+        // Set default date to today
+        document.getElementById('txn-date')._flatpickr.setDate(new Date());
+        modal.classList.remove('hidden');
+    });
+
+    // Close Modal
+    closeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            modal.classList.add('hidden');
+        });
+    });
+
+    // Close on click outside
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+
+    // Initialize Modal Date Picker
+    flatpickr("#txn-date", {
+        dateFormat: "Y-m-d",
+        theme: "dark",
+        disableMobile: true,
+        defaultDate: new Date()
+    });
+
+    // Form Submit
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const transaction = {
+            date: document.getElementById('txn-date').value,
+            type: document.getElementById('txn-type').value,
+            category: document.getElementById('txn-category').value,
+            actual: parseFloat(document.getElementById('txn-amount').value),
+            note: document.getElementById('txn-note').value
+        };
+
+        await addTransaction(transaction);
+        modal.classList.add('hidden');
+    });
+}
+
+async function addTransaction(transaction) {
+    try {
+        const response = await fetch(`${API_BASE}/transactions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(transaction)
+        });
+
+        if (response.ok) {
+            showToast('Transaction added successfully!', 'success');
+            await loadTransactionHistory();
+            // Also refresh dashboard if the date falls in the current view
+            const txnDate = new Date(transaction.date);
+            // Simple check: just reload dashboard to be safe if on dashboard page
+            if (document.getElementById('page-dashboard').classList.contains('active')) {
+                loadDashboardData();
+            }
+        } else {
+            throw new Error('Failed to add transaction');
+        }
+    } catch (error) {
+        console.error('Error adding transaction:', error);
+        showToast('Failed to add transaction', 'error');
+    }
+}
+
+async function deleteTransaction(id) {
+    if (!confirm('Are you sure you want to delete this transaction?')) return;
+
+    try {
+        const response = await fetch(`${API_BASE}/transactions/${id}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            showToast('Transaction deleted successfully!', 'success');
+            await loadTransactionHistory();
+            // Refresh dashboard if needed
+            if (document.getElementById('page-dashboard').classList.contains('active')) {
+                loadDashboardData();
+            }
+        } else {
+            throw new Error('Failed to delete transaction');
+        }
+    } catch (error) {
+        console.error('Error deleting transaction:', error);
+        showToast('Failed to delete transaction', 'error');
+    }
+}
+
+// ========================================
+// MANAGER (Individual Transactions)
+// ========================================
 function initTransactionFilters() {
-    const filterType = document.getElementById('filter-type');
-    const filterStart = document.getElementById('filter-start');
-    const filterEnd = document.getElementById('filter-end');
+    const filterType = document.getElementById('manager-filter-type');
+    const filterStart = document.getElementById('manager-filter-start');
+    const filterEnd = document.getElementById('manager-filter-end');
 
-    // Set default dates
+    // Set default filters (current month)
     const today = new Date();
-    const threeMonthsAgo = new Date(today);
-    threeMonthsAgo.setMonth(today.getMonth() - 3);
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
 
-    filterStart.value = formatDate(threeMonthsAgo);
+    filterStart.value = formatDate(firstDay);
     filterEnd.value = formatDate(today);
 
     // Add event listeners
     filterType.addEventListener('change', loadTransactionHistory);
     filterStart.addEventListener('change', loadTransactionHistory);
     filterEnd.addEventListener('change', loadTransactionHistory);
+
+    // Initialize the Manager Calendar
+    initManagerCalendar();
+}
+
+async function initManagerCalendar() {
+    // Inject styles if missing
+    if (!document.getElementById('calendar-highlights')) {
+        const style = document.createElement('style');
+        style.id = 'calendar-highlights';
+        style.innerHTML = `
+            .flatpickr-day.has-data {
+                background: rgba(34, 197, 94, 0.2);
+                border-color: #22c55e;
+                font-weight: bold;
+            }
+            .flatpickr-day.has-data:hover {
+                background: #22c55e;
+                color: white;
+            }
+            .center-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 1rem;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    // Modal elements
+    const modal = document.getElementById('calendar-modal');
+    const openBtn = document.getElementById('open-calendar-btn');
+    const closeBtn = document.getElementById('close-calendar-modal');
+
+    let fpInstance = null;
+
+    // Open Modal
+    openBtn.addEventListener('click', () => {
+        modal.classList.remove('hidden');
+        // Force redraw if instance exists
+        if (fpInstance) {
+            fpInstance.redraw();
+        }
+    });
+
+    // Close Modal
+    closeBtn.addEventListener('click', () => {
+        modal.classList.add('hidden');
+    });
+
+    // Close on click outside
+    window.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            modal.classList.add('hidden');
+        }
+    });
+
+    try {
+        // Fetch weeks with data to highlight
+        const response = await fetch(`${API_BASE}/transactions/history/weeks`);
+        const data = await response.json();
+        const savedWeeks = data.weeks.map(w => w.week_start);
+
+        fpInstance = flatpickr("#manager-calendar", {
+            inline: true,
+            dateFormat: "Y-m-d",
+            theme: "dark",
+            weekNumbers: true,
+            locale: { firstDayOfWeek: 1 },
+
+            // Highlight saved weeks
+            onDayCreate: function (dObj, dStr, fp, dayElem) {
+                const weekStart = getWeekStart(dayElem.dateObj);
+                if (savedWeeks.includes(weekStart)) {
+                    dayElem.classList.add("has-data");
+                    dayElem.title = "Has transactions";
+                }
+            },
+
+            // On click: Filter table to this week
+            onChange: function (selectedDates, dateStr, instance) {
+                if (selectedDates.length > 0) {
+                    const date = selectedDates[0];
+                    // Calculate Week Start (Monday) and End (Sunday)
+                    const day = date.getDay();
+                    const diff = date.getDate() - day + (day == 0 ? -6 : 1);
+                    const monday = new Date(date);
+                    monday.setDate(diff);
+
+                    const sunday = new Date(monday);
+                    sunday.setDate(monday.getDate() + 6);
+
+                    // Update Filter Inputs
+                    document.getElementById('manager-filter-start').value = formatDate(monday);
+                    document.getElementById('manager-filter-end').value = formatDate(sunday);
+
+                    // Trigger load
+                    loadTransactionHistory();
+                    showToast(`Viewing transactions for week of ${formatDate(monday)}`, 'success');
+
+                    // Close the modal
+                    modal.classList.add('hidden');
+                }
+            }
+        });
+    } catch (error) {
+        console.error("Error initializing manager calendar:", error);
+    }
 }
 
 function initExportButton() {
-    document.getElementById('export-btn').addEventListener('click', exportTransactions);
+    document.getElementById('export-manager-btn').addEventListener('click', exportTransactions);
 }
 
 async function loadTransactionHistory() {
     try {
-        const typeFilter = document.getElementById('filter-type').value;
-        const startDate = document.getElementById('filter-start').value;
-        const endDate = document.getElementById('filter-end').value;
+        const typeFilter = document.getElementById('manager-filter-type').value;
+        const startDate = document.getElementById('manager-filter-start').value;
+        const endDate = document.getElementById('manager-filter-end').value;
 
         let url = `${API_BASE}/transactions/all?`;
         if (typeFilter) url += `type_filter=${typeFilter}&`;
@@ -1039,12 +1258,12 @@ async function loadTransactionHistory() {
 }
 
 function renderTransactionTable(transactions) {
-    const tableBody = document.querySelector('#transactions-log-table tbody');
+    const tableBody = document.querySelector('#manager-table tbody');
 
     if (transactions.length === 0) {
         tableBody.innerHTML = `
             <tr>
-                <td colspan="4" style="text-align: center; color: var(--text-muted); padding: 40px;">
+                <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 40px;">
                     No transactions found for the selected filters.
                 </td>
             </tr>
@@ -1055,11 +1274,31 @@ function renderTransactionTable(transactions) {
     tableBody.innerHTML = transactions.map(txn => `
         <tr>
             <td>${txn.date}</td>
-            <td>${txn.category}</td>
+            <td>
+                ${txn.category}
+                ${txn.note ? `<br><small class="text-muted">${txn.note}</small>` : ''}
+            </td>
             <td><span class="type-badge type-${txn.type.toLowerCase()}">${txn.type}</span></td>
             <td class="${txn.type === 'Income' ? 'difference-positive' : ''}">${formatCurrency(txn.amount)}</td>
+            <td>
+                <button class="btn btn-icon delete-txn-btn" data-id="${txn.id || ''}" title="Delete">
+                    🗑️
+                </button>
+            </td>
         </tr>
     `).join('');
+
+    // Add delete event listeners
+    document.querySelectorAll('.delete-txn-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const id = e.target.closest('button').dataset.id;
+            if (id) {
+                deleteTransaction(id);
+            } else {
+                showToast('Cannot delete legacy transaction without ID', 'error');
+            }
+        });
+    });
 }
 
 async function exportTransactions() {
@@ -1073,9 +1312,115 @@ async function exportTransactions() {
 }
 
 // ========================================
+// HISTORY (Saved Weeks)
+// ========================================
+async function loadHistoryWeeks() {
+    try {
+        const response = await fetch(`${API_BASE}/transactions/history/weeks`);
+        const data = await response.json();
+        renderHistoryCalendar(data.weeks);
+    } catch (error) {
+        console.error('Error loading history:', error);
+        showToast('Failed to load history', 'error');
+    }
+}
+
+function renderHistoryCalendar(weeks) {
+    // Extract just the week start dates
+    const savedDates = weeks.map(w => w.week_start);
+
+    flatpickr("#history-calendar", {
+        inline: true,
+        dateFormat: "Y-m-d",
+        theme: "dark",
+
+        // Highlight weeks with data
+        onDayCreate: function (dObj, dStr, fp, dayElem) {
+            // Check if this date's week start is in our saved list
+            const weekStart = getWeekStart(dayElem.dateObj);
+
+            if (savedDates.includes(weekStart)) {
+                dayElem.classList.add("has-data");
+                dayElem.title = "Click to view this week";
+            }
+        },
+
+        // Handle selection
+        onChange: function (selectedDates, dateStr, instance) {
+            if (selectedDates.length > 0) {
+                const selectedDate = selectedDates[0];
+                const weekStart = getWeekStart(selectedDate);
+
+                // Load into dashboard
+                loadWeekInDashboard(weekStart);
+
+                // Show feedback
+                showToast(`Loading data for week of ${weekStart}...`, 'success');
+            }
+        }
+    });
+
+    // Add custom styles for the calendar highlights dynamically
+    if (!document.getElementById('calendar-highlights')) {
+        const style = document.createElement('style');
+        style.id = 'calendar-highlights';
+        style.innerHTML = `
+            .flatpickr-day.has-data {
+                background: rgba(34, 197, 94, 0.2);
+                border-color: #22c55e;
+                font-weight: bold;
+            }
+            .flatpickr-day.has-data:hover {
+                background: #22c55e;
+                color: white;
+            }
+            .center-content {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                padding: 2rem;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+}
+
+function getWeekStart(date) {
+    const d = new Date(date);
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day == 0 ? -6 : 1); // adjust when day is sunday
+    const monday = new Date(d.setDate(diff));
+    return formatDate(monday);
+}
+
+function loadWeekInDashboard(weekStart) {
+    currentWeekStart = weekStart;
+
+    // Switch to Dashboard tab
+    const dashboardNav = document.querySelector('.nav-item[data-page="dashboard"]');
+    if (dashboardNav) {
+        dashboardNav.click();
+    }
+
+    // Trigger load (dashboard logic listens to tab click generally, but we might need to force reload if already on dashboard)
+    // Actually the tab click handler calls loadDashboardData()
+    // Let's call it explicitly to be safe as the click might not trigger if already active (logic depends on implementation)
+    // In our initNavigation:
+    // item.addEventListener('click', (e) => { ... item.classList.add('active'); ... loadDashboardData() if needed ...})
+    // If we click() the element, it triggers the event listener.
+    // So currentWeekStart is updated, then click() happens, which calls loadDashboardData() with that currentWeekStart? 
+    // Wait, loadDashboardData uses global `currentWeekStart`.
+    // Yes.
+}
+
+// ========================================
 // UTILITY FUNCTIONS
 // ========================================
 function formatCurrency(value) {
+    if (value === null || value === undefined || isNaN(value) || value === 'NaN') {
+        return '$0.00';
+    }
     const absValue = Math.abs(value);
     const formatted = '$' + absValue.toLocaleString('en-US', {
         minimumFractionDigits: 2,

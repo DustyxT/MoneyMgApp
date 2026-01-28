@@ -1,18 +1,25 @@
-Date,Category,Type,Actual
-2026-01-23,Rent,Expenses,0.0
-2026-01-23,Groceries,Expenses,0.0
-2026-01-23,Gym,Expenses,0.0
-2026-01-23,Insurance,Expenses,0.0
-2026-01-23,Utilities,Expenses,0.0
-2026-01-23,Eat Out,Expenses,0.0
-2026-01-23,Subscriptions,Expenses,0.0
-2026-01-23,Phone Bill,Expenses,0.0
-2026-01-23,Gifts,Expenses,0.0
-2026-01-23,Fuel,Expenses,0.0
-2026-01-23,Shopping,Expenses,0.0
-2026-01-23,Internet Bill,Expenses,0.0
-2026-02-23,Part Time Job,Income,85.0
-2026-02-23,Groceries,Expenses,10.0
-2026-02-23,Gym,Expenses,5.0
-2026-02-23,Emergency,Savings,5.0
-2026-02-23,Family Remittance,Savings,5.0
+Date,Category,Type,Actual,id
+2026-01-23,Rent,Expenses,0.0,569c6fa0-2b60-4090-a2b6-ed1cb4ad7194
+2026-01-23,Groceries,Expenses,0.0,c9e16e6a-3f60-42cc-88ec-224a4df6914e
+2026-01-23,Gym,Expenses,0.0,deda95a4-1af4-4419-b1be-cfc4acee89bd
+2026-01-23,Insurance,Expenses,0.0,160b3d64-4dda-4a9a-9c88-96c1ce5e2231
+2026-01-23,Utilities,Expenses,0.0,2c095f2b-6b91-4b62-9f79-957027f0eecb
+2026-01-23,Eat Out,Expenses,0.0,16548ef7-cb35-48d6-8a1c-1e4fd215bd1d
+2026-01-23,Subscriptions,Expenses,0.0,070cacc6-fbd6-412d-bbe4-962c8a4e555d
+2026-01-23,Phone Bill,Expenses,0.0,77d0dcf2-2192-41d4-aaea-34d6afcc622d
+2026-01-23,Gifts,Expenses,0.0,652998d8-b459-428c-8f7f-bd4783aa0f8b
+2026-01-23,Fuel,Expenses,0.0,da64589a-7c9e-411a-a1f8-8f3f0e115237
+2026-01-23,Shopping,Expenses,0.0,0a7006b9-b187-45d4-81f9-725b97e938f7
+2026-01-23,Internet Bill,Expenses,0.0,aad6fd87-f26c-4bc1-af29-46159304fa14
+2026-02-23,Part Time Job,Income,600.0,1a9bb801-6d4c-411c-9a86-7f952a8121f7
+2026-02-23,Groceries,Expenses,80.0,1b81522c-227a-44a3-9a4d-d674f155800f
+2026-02-23,Gym,Expenses,15.0,6c4e5114-414e-436b-8195-d1551fde85b1
+2026-02-23,Emergency,Savings,60.0,cefb82b0-bf7e-4522-8a9f-a70a0cea38aa
+2026-02-23,Family Remittance,Savings,10.0,e788078f-b8ca-4c6a-9a12-bddbe4372f1b
+2026-02-23,Phone,Bills,10.0,2157ada4-cd04-40ac-81cf-5aa841773769
+2026-02-23,Internet,Bills,15.0,8cee06e9-13d5-44ce-9b7a-b8a97f9932e1
+2026-02-23,Gas,Bills,20.0,54ca2e51-5afc-4d1d-836b-35c2ca429af5
+2026-02-23,Rent,Expenses,280.0,a9a38158-252b-448c-a84c-58ce010d3064
+2026-02-23,Eat Out,Expenses,5.0,9b2eb797-14df-4b9a-a8bd-080ff74e7bc3
+2026-02-23,Subscriptions,Expenses,5.0,e2c8a358-0161-4220-bdbb-7c0c3019330f
+2026-02-23,Internet Bill,Expenses,15.0,a7de0a56-20d8-4df7-ab79-d79533711fc6

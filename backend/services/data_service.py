@@ -2,6 +2,7 @@ import pandas as pd
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict, Any, Optional
+import uuid
 
 # Path to data files (parent directory)
 DATA_DIR = Path(__file__).parent.parent.parent
@@ -55,9 +56,13 @@ def load_transactions() -> pd.DataFrame:
     """Load transactions from CSV or create empty DataFrame."""
     try:
         df = pd.read_csv(TRANSACTIONS_FILE)
+        # Ensure ID column exists
+        if "id" not in df.columns:
+            df["id"] = [str(uuid.uuid4()) for _ in range(len(df))]
+            save_transactions(df)
         return df
     except FileNotFoundError:
-        df = pd.DataFrame(columns=["Date", "Category", "Type", "Actual"])
+        df = pd.DataFrame(columns=["id", "Date", "Category", "Type", "Actual", "Note"])
         df.to_csv(TRANSACTIONS_FILE, index=False)
         return df
 
@@ -65,6 +70,40 @@ def load_transactions() -> pd.DataFrame:
 def save_transactions(df: pd.DataFrame):
     """Save transactions to CSV."""
     df.to_csv(TRANSACTIONS_FILE, index=False)
+
+
+def add_transaction(date: str, category: str, cat_type: str, amount: float, note: str = "") -> str:
+    """Add a new transaction and return its ID."""
+    df = load_transactions()
+    new_id = str(uuid.uuid4())
+    
+    new_row = pd.DataFrame([{
+        "id": new_id,
+        "Date": date,
+        "Category": category,
+        "Type": cat_type,
+        "Actual": amount,
+        "Note": note
+    }])
+    
+    df = pd.concat([df, new_row], ignore_index=True)
+    save_transactions(df)
+    return new_id
+
+
+def delete_transaction(transaction_id: str) -> bool:
+    """Delete a transaction by ID. Returns True if found and deleted."""
+    df = load_transactions()
+    if "id" not in df.columns:
+        return False
+        
+    initial_len = len(df)
+    df = df[df["id"] != transaction_id]
+    
+    if len(df) < initial_len:
+        save_transactions(df)
+        return True
+    return False
 
 
 def get_week_start(d: datetime) -> datetime:
@@ -178,6 +217,21 @@ def save_weekly_transactions(week_start_str: str, data: List[Dict[str, Any]]):
     
     save_budget_config(budget_df)
     save_transactions(transactions_df)
+
+
+def get_saved_weeks() -> List[str]:
+    """Get list of week start dates that have any transaction data."""
+    df = load_transactions()
+    if df.empty:
+        return []
+        
+    # Get unique dates and sort them
+    dates = df["Date"].unique().tolist()
+    
+    # Sort descending (newest first)
+    dates.sort(reverse=True)
+    
+    return dates
 
 
 def get_summary_metrics(start_date: str, end_date: str) -> Dict[str, float]:

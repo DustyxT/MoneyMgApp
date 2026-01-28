@@ -3,10 +3,12 @@ from typing import Optional, List
 from datetime import date
 
 class Transaction(BaseModel):
+    id: Optional[str] = None
     date: str
     category: str
     type: str
     actual: float
+    note: Optional[str] = None
 
 class TransactionUpdate(BaseModel):
     transactions: List[Transaction]
