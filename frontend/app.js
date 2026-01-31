@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     initViewToggle();
     initBudgetDateInputs();
     initTransactionFilters();
-    initTransactionModal();
+    initInlineTransactionForm();
     initExportButton();
     initCalendarPickers();
 
@@ -419,11 +419,21 @@ function initNavigation() {
 let managerCalendarInitialized = false;
 
 async function initManagerCalendar() {
+    console.log("initManagerCalendar() called");
+
     // Only initialize once
-    if (managerCalendarInitialized) return;
+    if (managerCalendarInitialized) {
+        console.log("Manager calendar already initialized, skipping");
+        return;
+    }
 
     const managerCalendarEl = document.getElementById('manager-calendar');
-    if (!managerCalendarEl) return;
+    console.log("manager-calendar element:", managerCalendarEl);
+
+    if (!managerCalendarEl) {
+        console.log("manager-calendar element NOT FOUND!");
+        return;
+    }
 
     // Inject highlight styles if not present
     if (!document.getElementById('manager-calendar-highlights')) {
@@ -438,6 +448,13 @@ async function initManagerCalendar() {
             .flatpickr-day.has-data:hover {
                 background: #22c55e !important;
                 color: white;
+            }
+            .flatpickr-day.week-hover {
+                background: rgba(59, 130, 246, 0.3) !important;
+                border-color: #3b82f6 !important;
+            }
+            .flatpickr-day.has-data.week-hover {
+                background: rgba(34, 197, 94, 0.5) !important;
             }
         `;
         document.head.appendChild(style);
@@ -456,14 +473,29 @@ async function initManagerCalendar() {
             weekNumbers: true,
             locale: { firstDayOfWeek: 1 },
 
-            // Highlight saved weeks
+            // Highlight saved weeks + add week-hover effect
             onDayCreate: function (dObj, dStr, fp, dayElem) {
                 const dateObj = dayElem.dateObj;
+
+                // Create clean date to avoid timezone issues
+                const cleanDate = new Date(
+                    dateObj.getFullYear(),
+                    dateObj.getMonth(),
+                    dateObj.getDate(),
+                    12, 0, 0  // Noon to avoid DST issues
+                );
+
                 // Get week start (Monday) for this date
-                const dayOfWeek = dateObj.getDay();
-                const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-                const monday = new Date(dateObj);
-                monday.setDate(dateObj.getDate() + diff);
+                const dayOfWeek = cleanDate.getDay();
+                const monday = new Date(cleanDate);
+
+                if (dayOfWeek === 0) {
+                    // Sunday: go back 6 days
+                    monday.setDate(cleanDate.getDate() - 6);
+                } else {
+                    // Other days: go back (dayOfWeek - 1) days
+                    monday.setDate(cleanDate.getDate() - (dayOfWeek - 1));
+                }
 
                 const weekStart = monday.getFullYear() + '-' +
                     String(monday.getMonth() + 1).padStart(2, '0') + '-' +
@@ -473,31 +505,76 @@ async function initManagerCalendar() {
                     dayElem.classList.add("has-data");
                     dayElem.title = "Has transactions";
                 }
+
+                // Week hover highlighting (highlight entire row)
+                dayElem.addEventListener('mouseenter', function () {
+                    const container = dayElem.closest('.dayContainer');
+                    if (!container) return;
+
+                    const allDays = Array.from(container.querySelectorAll('.flatpickr-day'));
+                    const dayIndex = allDays.indexOf(dayElem);
+                    const weekRowStart = Math.floor(dayIndex / 7) * 7;
+                    const weekRowEnd = weekRowStart + 7;
+
+                    for (let i = weekRowStart; i < weekRowEnd && i < allDays.length; i++) {
+                        allDays[i].classList.add('week-hover');
+                    }
+                });
+                dayElem.addEventListener('mouseleave', function () {
+                    const container = dayElem.closest('.dayContainer');
+                    if (!container) return;
+
+                    const allDays = container.querySelectorAll('.flatpickr-day');
+                    allDays.forEach(d => d.classList.remove('week-hover'));
+                });
             },
 
             // On click: Filter table to this week
             onChange: function (selectedDates, dateStr, instance) {
-                if (selectedDates.length > 0) {
-                    const date = selectedDates[0];
-                    // Calculate Week Start (Monday) and End (Sunday)
-                    const dayOfWeek = date.getDay();
-                    const diff = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
-                    const monday = new Date(date);
-                    monday.setDate(date.getDate() + diff);
+                if (selectedDates.length > 0 && dateStr) {
+                    // Parse the date string directly (format: YYYY-MM-DD) to avoid timezone issues
+                    const parts = dateStr.split('-');
+                    const year = parseInt(parts[0], 10);
+                    const month = parseInt(parts[1], 10) - 1; // JS months are 0-indexed
+                    const day = parseInt(parts[2], 10);
 
-                    const sunday = new Date(monday);
-                    sunday.setDate(monday.getDate() + 6);
+                    console.log("DEBUG: dateStr =", dateStr);
+                    console.log("DEBUG: Parsed year/month/day =", year, month + 1, day);
 
-                    // Format dates
+                    // Create date at noon UTC to avoid any timezone shifts
+                    const clickedDate = new Date(Date.UTC(year, month, day, 12, 0, 0));
+
+                    // Calculate day of week from UTC date (0=Sun, 1=Mon, ... 6=Sat)
+                    const dayOfWeek = clickedDate.getUTCDay();
+
+                    console.log("DEBUG: UTC dayOfWeek (0=Sun, 1=Mon) =", dayOfWeek);
+
+                    // Calculate days to subtract to get to Monday
+                    let daysToSubtract;
+                    if (dayOfWeek === 0) {
+                        daysToSubtract = 6; // Sunday -> previous Monday
+                    } else {
+                        daysToSubtract = dayOfWeek - 1; // Other days -> same week's Monday
+                    }
+
+                    // Calculate Monday
+                    const mondayDate = new Date(Date.UTC(year, month, day - daysToSubtract, 12, 0, 0));
+                    const sundayDate = new Date(Date.UTC(year, month, day - daysToSubtract + 6, 12, 0, 0));
+
+                    console.log("DEBUG: mondayDate =", mondayDate.toISOString());
+                    console.log("DEBUG: sundayDate =", sundayDate.toISOString());
+
+                    // Format dates as YYYY-MM-DD using UTC values
                     const fmtDate = (d) => {
-                        return d.getFullYear() + '-' +
-                            String(d.getMonth() + 1).padStart(2, '0') + '-' +
-                            String(d.getDate()).padStart(2, '0');
+                        const y = d.getUTCFullYear();
+                        const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+                        const dd = String(d.getUTCDate()).padStart(2, '0');
+                        return `${y}-${m}-${dd}`;
                     };
 
                     // Store in global filter vars
-                    managerFilterStart = fmtDate(monday);
-                    managerFilterEnd = fmtDate(sunday);
+                    managerFilterStart = fmtDate(mondayDate);
+                    managerFilterEnd = fmtDate(sundayDate);
 
                     // Update display
                     const displayEl = document.getElementById('selected-week-display');
@@ -1160,41 +1237,83 @@ async function applyDatesToAll() {
 // ========================================
 // TRANSACTIONS
 // ========================================
-function initTransactionModal() {
-    const modal = document.getElementById('transaction-modal');
-    const addBtn = document.getElementById('add-transaction-btn');
-    const closeBtns = document.querySelectorAll('.close-modal, .close-modal-btn');
-    const form = document.getElementById('transaction-form');
+function initInlineTransactionForm() {
+    const section = document.getElementById('add-transaction-section');
+    const toggleBtn = document.getElementById('toggle-add-form-btn');
+    const cancelBtn = document.getElementById('cancel-add-btn');
+    const form = document.getElementById('inline-transaction-form');
+    const toggleIcon = document.getElementById('toggle-icon');
+    const toggleText = document.getElementById('toggle-text');
+    const dateInput = document.getElementById('inline-txn-date');
 
-    // Open Modal
-    addBtn.addEventListener('click', () => {
-        // Reset form
-        form.reset();
-        // Set default date to today
-        document.getElementById('txn-date')._flatpickr.setDate(new Date());
-        modal.classList.remove('hidden');
-    });
+    if (!toggleBtn || !section || !form) {
+        console.log("Inline transaction form elements not found");
+        return;
+    }
 
-    // Close Modal
-    closeBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            modal.classList.add('hidden');
+    // Initialize Flatpickr for the date input with week hover highlighting
+    let inlineDatePicker = null;
+    if (dateInput) {
+        inlineDatePicker = flatpickr("#inline-txn-date", {
+            dateFormat: "Y-m-d",
+            theme: "dark",
+            disableMobile: true,
+            allowInput: false,
+            defaultDate: new Date(),
+            locale: { firstDayOfWeek: 1 }, // Start week on Monday
+
+            // Add week hover highlighting
+            onDayCreate: function (dObj, dStr, fp, dayElem) {
+                // Week hover highlighting (highlight entire row)
+                dayElem.addEventListener('mouseenter', function () {
+                    const container = dayElem.closest('.dayContainer');
+                    if (!container) return;
+
+                    const allDays = Array.from(container.querySelectorAll('.flatpickr-day'));
+                    const dayIndex = allDays.indexOf(dayElem);
+                    const weekRowStart = Math.floor(dayIndex / 7) * 7;
+                    const weekRowEnd = weekRowStart + 7;
+
+                    for (let i = weekRowStart; i < weekRowEnd && i < allDays.length; i++) {
+                        allDays[i].classList.add('week-hover');
+                    }
+                });
+
+                dayElem.addEventListener('mouseleave', function () {
+                    const container = dayElem.closest('.dayContainer');
+                    if (!container) return;
+
+                    const allDays = container.querySelectorAll('.flatpickr-day');
+                    allDays.forEach(d => d.classList.remove('week-hover'));
+                });
+            }
         });
-    });
+    }
 
-    // Close on click outside
-    window.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.classList.add('hidden');
+    // Toggle form visibility
+    toggleBtn.addEventListener('click', () => {
+        const isHidden = section.classList.contains('hidden');
+        if (isHidden) {
+            section.classList.remove('hidden');
+            toggleIcon.textContent = '✕';
+            toggleText.textContent = 'Close Form';
+            // Set default date to today using Flatpickr
+            if (inlineDatePicker) {
+                inlineDatePicker.setDate(new Date());
+            }
+        } else {
+            section.classList.add('hidden');
+            toggleIcon.textContent = '➕';
+            toggleText.textContent = 'Add Transaction';
         }
     });
 
-    // Initialize Modal Date Picker
-    flatpickr("#txn-date", {
-        dateFormat: "Y-m-d",
-        theme: "dark",
-        disableMobile: true,
-        defaultDate: new Date()
+    // Cancel button
+    cancelBtn.addEventListener('click', () => {
+        section.classList.add('hidden');
+        toggleIcon.textContent = '➕';
+        toggleText.textContent = 'Add Transaction';
+        form.reset();
     });
 
     // Form Submit
@@ -1202,15 +1321,20 @@ function initTransactionModal() {
         e.preventDefault();
 
         const transaction = {
-            date: document.getElementById('txn-date').value,
-            type: document.getElementById('txn-type').value,
-            category: document.getElementById('txn-category').value,
-            actual: parseFloat(document.getElementById('txn-amount').value),
-            note: document.getElementById('txn-note').value
+            date: document.getElementById('inline-txn-date').value,
+            type: document.getElementById('inline-txn-type').value,
+            category: document.getElementById('inline-txn-category').value,
+            actual: parseFloat(document.getElementById('inline-txn-amount').value),
+            note: document.getElementById('inline-txn-note').value || ''
         };
 
         await addTransaction(transaction);
-        modal.classList.add('hidden');
+
+        // Reset and hide form after successful submission
+        form.reset();
+        section.classList.add('hidden');
+        toggleIcon.textContent = '➕';
+        toggleText.textContent = 'Add Transaction';
     });
 }
 
@@ -1272,96 +1396,27 @@ function initTransactionFilters() {
     const filterStart = document.getElementById('manager-filter-start');
     const filterEnd = document.getElementById('manager-filter-end');
 
-    // Set default filters (current month)
-    const today = new Date();
-    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
-
-    filterStart.value = formatDate(firstDay);
-    filterEnd.value = formatDate(today);
-
-    // Add event listeners
-    filterType.addEventListener('change', loadTransactionHistory);
-    filterStart.addEventListener('change', loadTransactionHistory);
-    filterEnd.addEventListener('change', loadTransactionHistory);
-
-    // Initialize the Manager Calendar
-    initManagerCalendar();
-}
-
-async function initManagerCalendar() {
-    // Inject styles if missing
-    if (!document.getElementById('calendar-highlights')) {
-        const style = document.createElement('style');
-        style.id = 'calendar-highlights';
-        style.innerHTML = `
-            .flatpickr-day.has-data {
-                background: rgba(34, 197, 94, 0.2);
-                border-color: #22c55e;
-                font-weight: bold;
-            }
-            .flatpickr-day.has-data:hover {
-                background: #22c55e;
-                color: white;
-            }
-        `;
-        document.head.appendChild(style);
+    // Set default filters (current month) - only if elements exist
+    if (filterStart && filterEnd) {
+        const today = new Date();
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        filterStart.value = formatDate(firstDay);
+        filterEnd.value = formatDate(today);
+        filterStart.addEventListener('change', loadTransactionHistory);
+        filterEnd.addEventListener('change', loadTransactionHistory);
     }
 
-    try {
-        // Fetch weeks with data to highlight
-        const response = await fetch(`${API_BASE}/transactions/history/weeks`);
-        const data = await response.json();
-        const savedWeeks = data.weeks.map(w => w.week_start);
-
-        flatpickr("#manager-calendar", {
-            inline: true,
-            dateFormat: "Y-m-d",
-            theme: "dark",
-            weekNumbers: true,
-            locale: { firstDayOfWeek: 1 },
-
-            // Highlight saved weeks
-            onDayCreate: function (dObj, dStr, fp, dayElem) {
-                const weekStart = getWeekStart(dayElem.dateObj);
-                if (savedWeeks.includes(weekStart)) {
-                    dayElem.classList.add("has-data");
-                    dayElem.title = "Has transactions";
-                }
-            },
-
-            // On click: Filter table to this week
-            onChange: function (selectedDates, dateStr, instance) {
-                if (selectedDates.length > 0) {
-                    const date = selectedDates[0];
-                    // Calculate Week Start (Monday) and End (Sunday)
-                    const day = date.getDay();
-                    const diff = date.getDate() - day + (day == 0 ? -6 : 1);
-                    const monday = new Date(date);
-                    monday.setDate(diff);
-
-                    const sunday = new Date(monday);
-                    sunday.setDate(monday.getDate() + 6);
-
-                    // Store in global filter vars
-                    managerFilterStart = formatDate(monday);
-                    managerFilterEnd = formatDate(sunday);
-
-                    // Update display
-                    const displayEl = document.getElementById('selected-week-display');
-                    if (displayEl) {
-                        displayEl.innerHTML = `<span class="week-label">📅 ${managerFilterStart} – ${managerFilterEnd}</span>`;
-                    }
-
-                    // Trigger load
-                    loadTransactionHistory();
-                    showToast(`Viewing transactions for week of ${formatDate(monday)}`, 'success');
-                }
-            }
-        });
-    } catch (error) {
-        console.error("Error initializing manager calendar:", error);
+    // Add event listener only if element exists
+    if (filterType) {
+        filterType.addEventListener('change', loadTransactionHistory);
     }
+
+    // Note: Manager calendar is initialized when the tab becomes visible (in navigation handler)
+    // because Flatpickr inline mode requires the container to be visible
 }
+
+// NOTE: initManagerCalendar is defined earlier in this file (around line 421)
+// with the corrected week calculation logic.
 
 function initExportButton() {
     document.getElementById('export-manager-btn').addEventListener('click', exportTransactions);
@@ -1389,7 +1444,8 @@ async function loadTransactionHistory() {
 function renderTransactionTable(transactions) {
     const tableBody = document.querySelector('#manager-table tbody');
 
-    if (transactions.length === 0) {
+    // Handle null/undefined transactions
+    if (!transactions || transactions.length === 0) {
         tableBody.innerHTML = `
             <tr>
                 <td colspan="5" style="text-align: center; color: var(--text-muted); padding: 40px;">
@@ -1408,7 +1464,7 @@ function renderTransactionTable(transactions) {
                 ${txn.note ? `<br><small class="text-muted">${txn.note}</small>` : ''}
             </td>
             <td><span class="type-badge type-${txn.type.toLowerCase()}">${txn.type}</span></td>
-            <td class="${txn.type === 'Income' ? 'difference-positive' : ''}">${formatCurrency(txn.amount)}</td>
+            <td class="${txn.type === 'Income' ? 'difference-positive' : ''}">${formatCurrency(txn.actual)}</td>
             <td>
                 <button class="btn btn-icon delete-txn-btn" data-id="${txn.id || ''}" title="Delete">
                     🗑️
@@ -1541,6 +1597,28 @@ function loadWeekInDashboard(weekStart) {
     // So currentWeekStart is updated, then click() happens, which calls loadDashboardData() with that currentWeekStart? 
     // Wait, loadDashboardData uses global `currentWeekStart`.
     // Yes.
+}
+
+// Load a specific week in the Dashboard (called from History tab View button)
+function loadWeekInDashboard(weekStart) {
+    // Set the global week start
+    currentWeekStart = weekStart;
+
+    // Switch to Dashboard tab
+    document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+    const dashboardNav = document.querySelector('[data-page="dashboard"]');
+    if (dashboardNav) {
+        dashboardNav.classList.add('active');
+    }
+
+    // Show Dashboard page
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-dashboard').classList.add('active');
+
+    // Load dashboard data for this week
+    loadDashboardData();
+
+    showToast(`Viewing week of ${weekStart}`, 'success');
 }
 
 // ========================================

@@ -10,6 +10,7 @@ from services.data_service import (
 )
 import io
 import uuid
+import pandas as pd
 
 router = APIRouter(prefix="/api/transactions", tags=["transactions"])
 
@@ -72,8 +73,8 @@ def get_all_transactions(
                 "actual": float(row["Actual"]),
             }
             # Add optional fields if they exist
-            if "ID" in row and pd.notna(row["ID"]):
-                txn["id"] = str(row["ID"])
+            if "id" in row and pd.notna(row["id"]):
+                txn["id"] = str(row["id"])
             if "Note" in row and pd.notna(row["Note"]):
                 txn["note"] = str(row["Note"])
             
@@ -88,21 +89,26 @@ def get_all_transactions(
 def create_transaction(transaction: Transaction) -> dict:
     """Add a new transaction."""
     try:
-        # Convert Pydantic model to dict
-        txn_data = {
-            "Date": transaction.date,
-            "Category": transaction.category,
-            "Type": transaction.type,
-            "Actual": transaction.actual,
-            "Note": transaction.note
-        }
-        
-        new_txn = add_transaction(txn_data)
+        # Call add_transaction with individual parameters
+        new_id = add_transaction(
+            date=transaction.date,
+            category=transaction.category,
+            cat_type=transaction.type,
+            amount=transaction.actual,
+            note=transaction.note or ""
+        )
         
         return {
             "success": True, 
             "message": "Transaction added successfully", 
-            "transaction": new_txn
+            "transaction": {
+                "id": new_id,
+                "date": transaction.date,
+                "category": transaction.category,
+                "type": transaction.type,
+                "actual": transaction.actual,
+                "note": transaction.note
+            }
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
