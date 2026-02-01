@@ -1,24 +1,24 @@
 Category,Type,Budget,Start Date,End Date
-Part Time Job,Income,610.0,2026-02-23,2026-03-01
-Other Income,Income,0.0,2026-02-23,2026-03-01
-Phone,Bills,10.0,2026-02-23,2026-03-01
-Internet,Bills,15.0,2026-02-23,2026-03-01
-Gas,Bills,20.0,2026-02-23,2026-03-01
-Water,Bills,0.0,2026-02-23,2026-03-01
-Rent,Expenses,300.0,2026-02-23,2026-03-01
-Groceries,Expenses,100.0,2026-02-23,2026-03-01
-Gym,Expenses,15.0,2026-02-23,2026-03-01
-Insurance,Expenses,0.0,2026-02-23,2026-03-01
-Utilities,Expenses,0.0,2026-02-23,2026-03-01
-Eat Out,Expenses,40.0,2026-02-23,2026-03-01
-Subscriptions,Expenses,10.0,2026-02-23,2026-03-01
-Phone Bill,Expenses,0.0,2026-02-23,2026-03-01
-Gifts,Expenses,0.0,2026-02-23,2026-03-01
-Fuel,Expenses,0.0,2026-02-23,2026-03-01
-Shopping,Expenses,100.0,2026-02-23,2026-03-01
-Internet Bill,Expenses,15.0,2026-02-23,2026-03-01
-Home Deposit,Savings,35.0,2026-02-23,2026-03-01
-Emergency,Savings,60.0,2026-02-23,2026-03-01
-Family Remittance,Savings,60.0,2026-02-23,2026-03-01
-Car Loan,Debt,0.0,2026-02-23,2026-03-01
-Credit,Debt,0.0,2026-02-23,2026-03-01
+Part Time Job,Income,600.0,,
+Other Income,Income,0.0,,
+Phone,Bills,10.0,,
+Internet,Bills,15.0,,
+Gas,Bills,20.0,,
+Water,Bills,0.0,,
+Rent,Expenses,300.0,,
+Groceries,Expenses,100.0,,
+Gym,Expenses,15.0,,
+Insurance,Expenses,0.0,,
+Utilities,Expenses,0.0,,
+Eat Out,Expenses,40.0,,
+Subscriptions,Expenses,10.0,,
+Phone Bill,Expenses,0.0,,
+Gifts,Expenses,0.0,,
+Fuel,Expenses,0.0,,
+Shopping,Expenses,100.0,,
+Internet Bill,Expenses,15.0,,
+Home Deposit,Savings,35.0,,
+Emergency,Savings,60.0,,
+Family Remittance,Savings,60.0,,
+Car Loan,Debt,0.0,,
+Credit,Debt,0.0,,

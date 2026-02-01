@@ -5,7 +5,8 @@ from typing import List, Dict, Any, Optional
 import uuid
 
 # Path to data files (parent directory)
-DATA_DIR = Path(__file__).parent.parent.parent
+from utils import get_data_path
+DATA_DIR = get_data_path()
 
 BUDGET_FILE = DATA_DIR / "budget_config.csv"
 TRANSACTIONS_FILE = DATA_DIR / "transactions.csv"
@@ -157,6 +158,8 @@ def get_weekly_data(week_start_str: str) -> List[Dict[str, Any]]:
     
     # Parse the week start date for date range comparison
     week_date = datetime.strptime(week_start_str, "%Y-%m-%d")
+    week_end = week_date + timedelta(days=6)  # Sunday
+    week_end_str = week_end.strftime("%Y-%m-%d")
     
     weekly_data = []
     
@@ -177,15 +180,16 @@ def get_weekly_data(week_start_str: str) -> List[Dict[str, Any]]:
                 # If dates are invalid, apply budget anyway
                 budget_applies = True
         
-        # Only apply budget if date range matches
-        if budget_applies:
-            weekly_budget = round(weekly_budget_value, 2)
-        else:
-            weekly_budget = 0.0
+        # Skip categories that don't apply to this week
+        if not budget_applies:
+            continue
         
-        # Get actual for this week
+        weekly_budget = round(weekly_budget_value, 2)
+        
+        # Get actual for this week - use date range (Mon-Sun)
         mask = (
-            (transactions_df["Date"] == week_start_str) & 
+            (transactions_df["Date"] >= week_start_str) & 
+            (transactions_df["Date"] <= week_end_str) &
             (transactions_df["Category"] == category) & 
             (transactions_df["Type"] == cat_type)
         )
@@ -198,6 +202,34 @@ def get_weekly_data(week_start_str: str) -> List[Dict[str, Any]]:
             "actual": actual,
             "difference": round(weekly_budget - actual, 2) if cat_type != "Income" else round(actual - weekly_budget, 2)
         })
+    
+    # Add uncategorized transactions (not matching any budget category)
+    if not transactions_df.empty:
+        budget_categories = set(zip(budget_df["Category"], budget_df["Type"]))
+        
+        # Filter transactions for this week
+        week_end = week_date + timedelta(days=6)
+        week_end_str = week_end.strftime("%Y-%m-%d")
+        week_mask = (transactions_df["Date"] >= week_start_str) & (transactions_df["Date"] <= week_end_str)
+        week_transactions = transactions_df[week_mask]
+        
+        # Find transactions with categories not in budget config
+        if not week_transactions.empty:
+            uncategorized = week_transactions[~week_transactions.apply(
+                lambda row: (row["Category"], row["Type"]) in budget_categories, axis=1
+            )]
+            
+            # Group by category and type to show each unique category
+            if not uncategorized.empty:
+                grouped = uncategorized.groupby(["Category", "Type"])["Actual"].sum()
+                for (category, cat_type), total in grouped.items():
+                    weekly_data.append({
+                        "category": category,
+                        "type": cat_type,
+                        "budget": 0.0,
+                        "actual": float(total),
+                        "difference": -float(total) if cat_type != "Income" else float(total)
+                    })
     
     return weekly_data
 
@@ -358,6 +390,25 @@ def get_budget_vs_actual(start_date: str, end_date: str) -> List[Dict[str, Any]]
     result = []
     for _, row in budget_df.iterrows():
         if row["Type"] in ["Bills", "Expenses"]:
+            # Check date range validity
+            budget_applies = True
+            if "Start Date" in row and "End Date" in row:
+                try:
+                    cat_start = datetime.strptime(str(row["Start Date"]), "%Y-%m-%d")
+                    cat_end = datetime.strptime(str(row["End Date"]), "%Y-%m-%d")
+                    
+                    # Convert query string dates to datetime for comparison
+                    query_start = datetime.strptime(start_date, "%Y-%m-%d")
+                    query_end = datetime.strptime(end_date, "%Y-%m-%d")
+                    
+                    # Check for overlap: (StartA <= EndB) and (EndA >= StartB)
+                    budget_applies = (cat_start <= query_end) and (cat_end >= query_start)
+                except (ValueError, TypeError):
+                    budget_applies = True # Default to apply if dates invalid/empty
+            
+            if not budget_applies:
+                continue
+
             actual_match = actual_by_cat[
                 (actual_by_cat["Category"] == row["Category"]) & 
                 (actual_by_cat["Type"] == row["Type"])

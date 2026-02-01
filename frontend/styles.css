@@ -1,6 +1,6 @@
 /* ========================================
-   STUDENT FINANCE COMMANDER - STYLES
-   Professional Finance Dashboard Theme
+   MANAGE UR WEALTH - STYLES
+   Professional Personal Finance Dashboard
    ======================================== */
 
 /* CSS Variables - Design Tokens */
@@ -1648,4 +1648,65 @@ span.flatpickr-weekday {
         width: 100%;
         margin-top: var(--space-sm);
     }
+}
+
+/* ========================================
+   PROFILE MODAL STYLES
+   ======================================== */
+.profile-modal-content {
+    max-width: 400px;
+    width: 90%;
+}
+
+.profile-pic-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+.profile-pic-preview {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: var(--bg-tertiary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    border: 3px solid var(--accent-primary);
+    overflow: hidden;
+}
+
+.upload-btn {
+    cursor: pointer;
+}
+
+.profile-edit-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    padding: var(--space-xs);
+    margin-left: auto;
+}
+
+.user-info {
+    position: relative;
+}
+
+.user-info:hover .profile-edit-btn {
+    opacity: 1;
+}
+
+.profile-edit-btn:hover {
+    transform: scale(1.1);
+}
+
+#user-avatar {
+    position: relative;
+    overflow: hidden;
 }

@@ -1,6 +1,6 @@
 /**
- * Student Finance Commander - Frontend Application
- * Professional Finance Dashboard
+ * Manage Ur Wealth - Frontend Application
+ * Professional Personal Finance Dashboard
  */
 
 // API Base URL
@@ -16,6 +16,9 @@ let budgetItems = [];
 let managerFilterStart = null;
 let managerFilterEnd = null;
 
+// Profile State
+let userProfile = { name: 'User', picture: null };
+
 // ========================================
 // INITIALIZATION
 // ========================================
@@ -30,8 +33,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     initInlineTransactionForm();
     initExportButton();
     initCalendarPickers();
+    initProfileHandlers();
 
     // Load initial data
+    await loadProfile();
     await loadCurrentWeek();
     await loadDashboardData();
 });
@@ -40,7 +45,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // CALENDAR PICKERS (Flatpickr)
 // ========================================
 function initCalendarPickers() {
-    console.log("📅 initCalendarPickers() started");
+
 
     const baseConfig = {
         dateFormat: "Y-m-d",
@@ -147,7 +152,7 @@ function initCalendarPickers() {
                     }
                 }
             });
-            console.log("✓ Stats week picker initialized");
+
         }
     } catch (e) {
         console.error("× Error initializing stats week picker:", e);
@@ -272,7 +277,7 @@ function initCalendarPickers() {
                     }
                 }
             });
-            console.log("✓ Budget date picker initialized");
+
         }
     } catch (e) {
         console.error("× Error initializing budget date picker:", e);
@@ -287,7 +292,7 @@ function initCalendarPickers() {
                 ...weekHighlightConfig,
                 onChange: function () { loadTransactionHistory(); }
             });
-            console.log("✓ Filter start picker initialized");
+
         }
     } catch (e) {
         console.error("× Error initializing filter start picker:", e);
@@ -301,7 +306,7 @@ function initCalendarPickers() {
                 ...weekHighlightConfig,
                 onChange: function () { loadTransactionHistory(); }
             });
-            console.log("✓ Filter end picker initialized");
+
         }
     } catch (e) {
         console.error("× Error initializing filter end picker:", e);
@@ -372,7 +377,7 @@ function initCalendarPickers() {
                     }
                 }
             });
-            console.log("✓ Dashboard week picker initialized");
+
         }
     } catch (e) {
         console.error("× Error initializing dashboard week picker:", e);
@@ -419,19 +424,19 @@ function initNavigation() {
 let managerCalendarInitialized = false;
 
 async function initManagerCalendar() {
-    console.log("initManagerCalendar() called");
+
 
     // Only initialize once
     if (managerCalendarInitialized) {
-        console.log("Manager calendar already initialized, skipping");
+
         return;
     }
 
     const managerCalendarEl = document.getElementById('manager-calendar');
-    console.log("manager-calendar element:", managerCalendarEl);
+
 
     if (!managerCalendarEl) {
-        console.log("manager-calendar element NOT FOUND!");
+
         return;
     }
 
@@ -538,8 +543,8 @@ async function initManagerCalendar() {
                     const month = parseInt(parts[1], 10) - 1; // JS months are 0-indexed
                     const day = parseInt(parts[2], 10);
 
-                    console.log("DEBUG: dateStr =", dateStr);
-                    console.log("DEBUG: Parsed year/month/day =", year, month + 1, day);
+
+
 
                     // Create date at noon UTC to avoid any timezone shifts
                     const clickedDate = new Date(Date.UTC(year, month, day, 12, 0, 0));
@@ -547,7 +552,7 @@ async function initManagerCalendar() {
                     // Calculate day of week from UTC date (0=Sun, 1=Mon, ... 6=Sat)
                     const dayOfWeek = clickedDate.getUTCDay();
 
-                    console.log("DEBUG: UTC dayOfWeek (0=Sun, 1=Mon) =", dayOfWeek);
+
 
                     // Calculate days to subtract to get to Monday
                     let daysToSubtract;
@@ -561,8 +566,8 @@ async function initManagerCalendar() {
                     const mondayDate = new Date(Date.UTC(year, month, day - daysToSubtract, 12, 0, 0));
                     const sundayDate = new Date(Date.UTC(year, month, day - daysToSubtract + 6, 12, 0, 0));
 
-                    console.log("DEBUG: mondayDate =", mondayDate.toISOString());
-                    console.log("DEBUG: sundayDate =", sundayDate.toISOString());
+
+
 
                     // Format dates as YYYY-MM-DD using UTC values
                     const fmtDate = (d) => {
@@ -590,7 +595,7 @@ async function initManagerCalendar() {
         });
 
         managerCalendarInitialized = true;
-        console.log("Manager calendar initialized successfully");
+
     } catch (error) {
         console.error("Error initializing manager calendar:", error);
     }
@@ -1247,7 +1252,7 @@ function initInlineTransactionForm() {
     const dateInput = document.getElementById('inline-txn-date');
 
     if (!toggleBtn || !section || !form) {
-        console.log("Inline transaction form elements not found");
+
         return;
     }
 
@@ -1348,12 +1353,16 @@ async function addTransaction(transaction) {
 
         if (response.ok) {
             showToast('Transaction added successfully!', 'success');
+
+            // Refresh all relevant data stores
             await loadTransactionHistory();
-            // Also refresh dashboard if the date falls in the current view
-            const txnDate = new Date(transaction.date);
-            // Simple check: just reload dashboard to be safe if on dashboard page
-            if (document.getElementById('page-dashboard').classList.contains('active')) {
-                loadDashboardData();
+
+            // Always refresh dashboard data so it's current when user navigates there
+            await loadDashboardData();
+
+            // Refresh statistics if dates are set
+            if (window.statsStartDate && window.statsEndDate) {
+                await loadStatisticsData();
             }
         } else {
             throw new Error('Failed to add transaction');
@@ -1736,7 +1745,7 @@ function showToast(message, type = 'info') {
 // INITIALIZATION
 // ========================================
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log("🚀 Application initializing...");
+
 
     // Initialize Navigation
     if (typeof initNavigation === 'function') {
@@ -1824,3 +1833,156 @@ document.addEventListener('DOMContentLoaded', async () => {
         });
     }
 });
+
+// ========================================
+// PROFILE MANAGEMENT
+// ========================================
+async function loadProfile() {
+    try {
+        const response = await fetch(`${API_BASE}/profile`);
+        if (response.ok) {
+            userProfile = await response.json();
+            applyProfile();
+        }
+    } catch (error) {
+        console.log('Could not load profile, using defaults');
+    }
+}
+
+function applyProfile() {
+    // Update sidebar display
+    const userName = document.getElementById('user-name');
+    const profilePic = document.getElementById('profile-pic');
+    const profileInitial = document.getElementById('profile-initial');
+
+    if (userName) {
+        userName.textContent = userProfile.name || 'User';
+    }
+
+    if (profilePic && profileInitial) {
+        if (userProfile.picture) {
+            profilePic.src = userProfile.picture;
+            profilePic.style.display = 'block';
+            profileInitial.style.display = 'none';
+        } else {
+            profilePic.style.display = 'none';
+            profileInitial.style.display = 'block';
+            profileInitial.textContent = userProfile.name ? userProfile.name.charAt(0).toUpperCase() : '👤';
+        }
+    }
+}
+
+function initProfileHandlers() {
+    const modal = document.getElementById('profile-modal');
+    const editBtn = document.getElementById('edit-profile-btn');
+    const closeBtn = document.getElementById('close-profile-modal');
+    const cancelBtn = document.getElementById('cancel-profile-btn');
+    const saveBtn = document.getElementById('save-profile-btn');
+    const nameInput = document.getElementById('profile-name-input');
+    const fileInput = document.getElementById('profile-pic-input');
+    const previewPic = document.getElementById('preview-pic');
+    const previewInitial = document.getElementById('preview-initial');
+
+    let tempPicture = null;
+
+    if (!modal || !editBtn) return;
+
+    // Open modal
+    editBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        nameInput.value = userProfile.name || '';
+        tempPicture = userProfile.picture;
+
+        // Set preview
+        if (userProfile.picture) {
+            previewPic.src = userProfile.picture;
+            previewPic.style.display = 'block';
+            previewInitial.style.display = 'none';
+        } else {
+            previewPic.style.display = 'none';
+            previewInitial.style.display = 'block';
+        }
+
+        modal.classList.remove('hidden');
+    });
+
+    // Close modal
+    function closeModal() {
+        modal.classList.add('hidden');
+        tempPicture = null;
+    }
+
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+
+    // Click outside to close
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+    });
+
+    // File upload
+    if (fileInput) {
+        console.log('File input found, adding listener');
+        fileInput.addEventListener('change', (e) => {
+            console.log('File input changed', e.target.files);
+            const file = e.target.files[0];
+            if (!file) {
+                console.log('No file selected');
+                return;
+            }
+
+            console.log('File selected:', file.name, file.size);
+
+            // Validate file size (10MB max)
+            if (file.size > 10 * 1024 * 1024) {
+                showToast('Image too large. Max size is 10MB.', 'error');
+                return;
+            }
+
+            // Read file as data URL
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                console.log('File read complete');
+                tempPicture = event.target.result;
+                previewPic.src = tempPicture;
+                previewPic.style.display = 'block';
+                previewInitial.style.display = 'none';
+            };
+            reader.onerror = (error) => {
+                console.error('Error reading file:', error);
+                showToast('Error reading file', 'error');
+            };
+            reader.readAsDataURL(file);
+        });
+    } else {
+        console.error('File input element not found!');
+    }
+
+    // Save profile
+    saveBtn.addEventListener('click', async () => {
+        const name = nameInput.value.trim() || 'User';
+
+        try {
+            const response = await fetch(`${API_BASE}/profile`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: name,
+                    picture: tempPicture
+                })
+            });
+
+            if (response.ok) {
+                userProfile = { name, picture: tempPicture };
+                applyProfile();
+                closeModal();
+                showToast('Profile updated successfully!', 'success');
+            } else {
+                showToast('Failed to save profile', 'error');
+            }
+        } catch (error) {
+            console.error('Error saving profile:', error);
+            showToast('Error saving profile', 'error');
+        }
+    });
+}
