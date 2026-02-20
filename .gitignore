@@ -8,3 +8,10 @@ venv/
 .idea/
 .DS_Store
 *.log
+
+# Build artifacts
+dist/
+dist_native/
+build/
+*.spec
+*.exe

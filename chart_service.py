@@ -49,9 +49,9 @@ def generate_income_vs_expenses_chart(start_date: str, end_date: str) -> str:
     fig.patch.set_facecolor(CHART_COLORS["background"])
     ax.set_facecolor(CHART_COLORS["background"])
     
-    categories = ["Income", "Expenses", "Savings"]
-    values = [totals["income"], totals["expenses"], totals["savings"]]
-    colors = [CHART_COLORS["success"], CHART_COLORS["error"], CHART_COLORS["primary"]]
+    categories = ["Income", "Expenses", "Savings", "Investments"]
+    values = [totals["income"], totals["expenses"], totals["savings"], totals.get("investments", 0)]
+    colors = [CHART_COLORS["success"], CHART_COLORS["error"], CHART_COLORS["primary"], "#14b8a6"]
     
     bars = ax.bar(categories, values, color=colors, width=0.6)
     

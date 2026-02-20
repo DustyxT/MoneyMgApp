@@ -1,14 +1,16 @@
 Date,Category,Type,Actual,id,Note
-2026-02-23,Part Time Job,Income,600.0,1a9bb801-6d4c-411c-9a86-7f952a8121f7,
-2026-02-23,Groceries,Expenses,80.0,1b81522c-227a-44a3-9a4d-d674f155800f,
-2026-02-23,Gym,Expenses,15.0,6c4e5114-414e-436b-8195-d1551fde85b1,
-2026-02-23,Emergency,Savings,60.0,cefb82b0-bf7e-4522-8a9f-a70a0cea38aa,
-2026-02-23,Family Remittance,Savings,60.0,e788078f-b8ca-4c6a-9a12-bddbe4372f1b,
-2026-02-23,Phone,Bills,10.0,2157ada4-cd04-40ac-81cf-5aa841773769,
-2026-02-23,Internet,Bills,15.0,8cee06e9-13d5-44ce-9b7a-b8a97f9932e1,
-2026-02-23,Gas,Bills,20.0,54ca2e51-5afc-4d1d-836b-35c2ca429af5,
-2026-02-23,Rent,Expenses,280.0,a9a38158-252b-448c-a84c-58ce010d3064,
-2026-02-23,Eat Out,Expenses,5.0,9b2eb797-14df-4b9a-a8bd-080ff74e7bc3,
-2026-02-23,Subscriptions,Expenses,5.0,e2c8a358-0161-4220-bdbb-7c0c3019330f,
-2026-02-23,Internet Bill,Expenses,15.0,a7de0a56-20d8-4df7-ab79-d79533711fc6,
-2026-02-23,Home Deposit,Savings,35.0,,
+2026-02-26,Part Time Job,Income,600.0,cf10b245-3f5d-42da-92c5-733972b501dc,Updated from dashboard
+2026-02-26,Groceries,Expenses,100.0,db8ee1b6-5c90-4608-a910-80fdd1ab1c9d,Updated from dashboard
+2026-02-26,Eat Out,Expenses,20.0,c6f09631-158d-493a-80ed-5080255774ed,Updated from dashboard
+2026-02-26,Subscriptions,Expenses,10.0,fcf74a92-622b-4391-ade6-20ee1c1d34bc,Updated from dashboard
+2026-02-26,Internet,Bills,10.0,f4e7d9a7-de79-47b0-9bd7-8fabb0f7b6cb,Updated from dashboard
+2026-02-26,Emergency,Savings,50.0,13afc5bd-1789-4c88-99c2-ac159a7f6335,Updated from dashboard
+2026-02-26,Gym,Expenses,20.0,3fde20dd-cb8f-48db-a8fc-f7d93cb24462,Updated from dashboard
+2026-02-26,Rent,Expenses,0.0,24882b9d-00b7-4a13-a666-f29f4f7c995e,Updated from dashboard
+2026-02-26,Shopping,Expenses,20.0,1c57bb0b-ba4a-4215-a25c-072bd0eb31ee,Updated from dashboard
+2026-02-26,Stock Market,Investments,30.0,420da7f1-f244-4966-808c-bb64b1627a9d,Updated from dashboard
+2026-02-26,Cryptocurrency,Investments,20.0,338b2e9d-d347-4010-9f67-8878b1e5aca1,Updated from dashboard
+2026-02-26,Family Remittance,Savings,10.0,3455e91d-6e1f-4493-aaf6-efde032ed421,Updated from dashboard
+2026-02-26,Uni fees,Savings,100.0,99c7650e-c8c5-4dca-b6a5-87a75425e410,Updated from dashboard
+2026-02-26,Home Deposit,Savings,0.0,66011831-6aac-49ca-bf70-a31ae3f37dfd,Updated from dashboard
+2026-02-23,hh,Income,1.0,47ea8959-7321-4490-9288-3fe3d6618baa,
