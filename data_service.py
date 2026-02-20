@@ -11,13 +11,16 @@ import uuid
 import json
 
 import sys
+import os
 
-# Path to data files
-# If frozen (exe), use the executable's directory. If script, use the script's directory.
+# Use APPDATA for production builds so it can write safely when installed
 if getattr(sys, 'frozen', False):
-    DATA_DIR = Path(sys.executable).parent
+    apphome = os.environ.get('APPDATA') or os.path.expanduser('~')
+    DATA_DIR = Path(apphome) / "ManageUrWealth"
 else:
     DATA_DIR = Path(__file__).parent
+
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 BUDGET_FILE = DATA_DIR / "budget_config.csv"
 TRANSACTIONS_FILE = DATA_DIR / "transactions.csv"
