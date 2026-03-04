@@ -11,7 +11,7 @@ def build_exe():
         "flet", "pack", "app.py",
         "--name", "ManageUrWealth",
         "--product-name", "Manage Ur Wealth",
-        "--product-version", "1.0.0",
+        "--product-version", "1.0.1",
         "--file-description", "Student Money Manager",
         "--copyright", "Copyright (c) 2026 Dusty",
     ]

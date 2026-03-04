@@ -6,7 +6,7 @@ Wraps the existing backend data_service for direct use in the desktop app.
 import pandas as pd
 from datetime import datetime, timedelta
 from pathlib import Path
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 import uuid
 import json
 
@@ -382,48 +382,44 @@ def save_profile(data: Dict[str, Any]):
         json.dump(data, f)
         
         
-def update_actual_value(start_date: str, end_date: str, category: str, 
+def update_actual_value(start_date: str, end_date: str, category: str,
                           data_type: str, amount: float):
     """
     Update the transaction value for a category in the date range.
-    Strategy: Remove existing transactions for this category in the week 
+    Strategy: Remove existing transactions for this category in the week
     and replace with a single transaction of the specified amount.
     This ensures the 'Actual' value in Dashboard matches exactly what user typed.
+    Reads and writes the CSV only once for efficiency.
     """
     df = load_transactions()
     budget = load_budget_config()
-    
+
     # Determine the actual Type from budget config
     cat_row = budget[budget["Category"] == category]
-    if len(cat_row) > 0:
-        actual_type = cat_row.iloc[0]["Type"]
-    else:
-        actual_type = data_type
-    
+    actual_type = cat_row.iloc[0]["Type"] if len(cat_row) > 0 else data_type
+
     start = pd.to_datetime(start_date)
     end = pd.to_datetime(end_date)
     mid_date = start + (end - start) / 2
-    
+
+    # Remove existing transactions for this category in the date range
     if len(df) > 0 and "Date" in df.columns:
-        # Standardize date for comparison
         df["Date"] = pd.to_datetime(df["Date"], errors="coerce")
-        
-        # Identifty transactions to remove
         mask_to_remove = (df["Date"] >= start) & (df["Date"] <= end) & (df["Category"] == category)
-        
         if mask_to_remove.any():
-            # Remove them
             df = df[~mask_to_remove]
-            save_transactions(df)
-            
-    # Add the single new transaction
-    add_transaction(
-        mid_date.strftime("%Y-%m-%d"),
-        category,
-        actual_type,
-        amount,
-        "Updated from dashboard"
-    )
+
+    # Append the single replacement transaction
+    new_row = pd.DataFrame([{
+        "id": str(uuid.uuid4()),
+        "Date": mid_date.strftime("%Y-%m-%d"),
+        "Category": category,
+        "Type": actual_type,
+        "Actual": amount,
+        "Note": "Updated from dashboard",
+    }])
+    df = pd.concat([df, new_row], ignore_index=True)
+    save_transactions(df)
 
 def delete_week_transactions(start_date: str, end_date: str) -> bool:
     """Delete all transactions within a specific week."""
@@ -444,21 +440,6 @@ def delete_week_transactions(start_date: str, end_date: str) -> bool:
         save_transactions(df)
         return True
     return False
-
-def update_budget_value(category: str, amount: float):
-    """Update budget amount for a category in the budget config."""
-    df = load_budget_config()
-    
-    if len(df) > 0:
-        mask = df["Category"] == category
-        if mask.any():
-            # Update all matches to be safe, though should be unique
-            df.loc[mask, "Budget"] = amount
-            save_budget_config(df)
-            return True
-            
-    return False
-
 
 def get_history_weeks() -> List[tuple]:
     """

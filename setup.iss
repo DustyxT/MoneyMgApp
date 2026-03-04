@@ -1,15 +1,18 @@
 [Setup]
 AppName=ManageUrWealth
-AppVersion=1.0.0
+AppVersion=1.0.1
+AppPublisher=Dusty
+AppPublisherURL=
 DefaultDirName={autopf}\ManageUrWealth
 DefaultGroupName=ManageUrWealth
 UninstallDisplayIcon={app}\ManageUrWealth.exe
 Compression=lzma2
 SolidCompression=yes
 OutputDir=setup_build
-OutputBaseFilename=ManageUrWealth_Setup
+OutputBaseFilename=ManageUrWealth_Setup_1.0.1
 ArchitecturesInstallIn64BitMode=x64
 PrivilegesRequired=lowest
+CloseApplications=yes
 ; Allow installation without admin rights if user chooses a local folder, but defaults to Program Files
 
 [Tasks]

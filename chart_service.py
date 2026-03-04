@@ -127,9 +127,11 @@ def generate_monthly_trend_chart(months: int = 4) -> str:
     
     month_data = []
     for i in range(months - 1, -1, -1):
-        # Calculate month start/end
-        target_date = today - timedelta(days=i * 30)
-        month_start = target_date.replace(day=1)
+        # Calculate correct month without 30-day approximation
+        total_months = today.year * 12 + (today.month - 1) - i
+        target_year = total_months // 12
+        target_month = total_months % 12 + 1
+        month_start = today.replace(year=target_year, month=target_month, day=1)
         if month_start.month == 12:
             month_end = month_start.replace(year=month_start.year + 1, month=1, day=1) - timedelta(days=1)
         else:

@@ -3,9 +3,11 @@ Manage Ur Wealth - Native Desktop Application
 Built with Flet (Flutter for Python)
 """
 
+import calendar
 import flet as ft
 from pathlib import Path
 from datetime import datetime, timedelta
+import pandas as pd
 import data_service as ds
 import chart_service as cs
 
@@ -172,108 +174,6 @@ def create_editable_data_table(title: str, columns: list, data: list, color: str
     )
 
 
-def create_calendar_picker(current_date: datetime, on_date_select, on_week_select) -> ft.Container:
-    """Create a calendar month view with week highlighting."""
-    import calendar
-    
-    year = current_date.year
-    month = current_date.month
-    cal = calendar.Calendar(firstweekday=6)  # Start on Sunday
-    month_days = list(cal.itermonthdays2(year, month))
-    
-    # Month navigation
-    month_label = ft.Text(
-        current_date.strftime("%B %Y"),
-        size=16,
-        weight=ft.FontWeight.BOLD,
-        color=COLORS["on_surface"],
-    )
-    
-    # Day headers
-    day_headers = ft.Row(
-        [ft.Text(d, size=12, color=COLORS["on_surface_variant"], width=35, text_align=ft.TextAlign.CENTER) 
-         for d in ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]],
-        spacing=2,
-    )
-    
-    # Build weeks
-    weeks = []
-    current_week = []
-    
-    for day, weekday in month_days:
-        if day == 0:
-            current_week.append(
-                ft.Container(width=35, height=35)  # Empty cell
-            )
-        else:
-            day_date = datetime(year, month, day)
-            is_today = day_date.date() == datetime.now().date()
-            
-            day_btn = ft.Container(
-                content=ft.Text(
-                    str(day),
-                    size=12,
-                    color=COLORS["on_surface"] if not is_today else COLORS["background"],
-                    text_align=ft.TextAlign.CENTER,
-                ),
-                width=35,
-                height=35,
-                bgcolor=COLORS["primary"] if is_today else None,
-                border_radius=17,
-                alignment=ft.Alignment(0, 0),
-                on_click=lambda e, d=day_date: on_date_select(d),
-                data=day_date,
-            )
-            current_week.append(day_btn)
-        
-        if len(current_week) == 7:
-            # Create week row with hover effect
-            week_row = ft.Container(
-                content=ft.Row(current_week, spacing=2),
-                border_radius=4,
-                on_hover=lambda e: _highlight_week(e),
-                on_click=lambda e, days=current_week: on_week_select(days),
-            )
-            weeks.append(week_row)
-            current_week = []
-    
-    # Add remaining days
-    if current_week:
-        while len(current_week) < 7:
-            current_week.append(ft.Container(width=35, height=35))
-        week_row = ft.Container(
-            content=ft.Row(current_week, spacing=2),
-            border_radius=4,
-            on_hover=lambda e: _highlight_week(e),
-        )
-        weeks.append(week_row)
-    
-    return ft.Container(
-        content=ft.Column([
-            ft.Row([
-                ft.IconButton(ft.Icons.CHEVRON_LEFT, icon_size=16, icon_color=COLORS["on_surface_variant"]),
-                month_label,
-                ft.IconButton(ft.Icons.CHEVRON_RIGHT, icon_size=16, icon_color=COLORS["on_surface_variant"]),
-            ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN),
-            day_headers,
-            *weeks,
-        ], spacing=5),
-        padding=15,
-        bgcolor=COLORS["surface"],
-        border_radius=12,
-        width=280,
-    )
-
-
-def _highlight_week(e):
-    """Highlight week row on hover."""
-    if e.data == "true":
-        e.control.bgcolor = COLORS["surface_variant"]
-    else:
-        e.control.bgcolor = None
-    e.control.update()
-
-
 def main(page: ft.Page):
     """Main application entry point."""
     
@@ -312,18 +212,7 @@ def main(page: ft.Page):
     
     
     # Manager now uses shared week_start/end for sync with Dashboard
-    
-    # Week picker label
-    week_label = ft.Text(
-        f"{week_start.strftime('%b %d')} - {week_end.strftime('%b %d, %Y')}",
-        size=16,
-        weight=ft.FontWeight.BOLD,
-        color=COLORS["on_surface"],
-    )
-    
-    # Content container reference
-    content_container = ft.Ref[ft.Container]()
-    
+
     # Track current view index
     current_view_index = 0
     
@@ -332,7 +221,6 @@ def main(page: ft.Page):
         nonlocal week_start, week_end
         week_start += timedelta(days=7 * delta)
         week_end += timedelta(days=7 * delta)
-        week_label.value = f"{week_start.strftime('%b %d')} - {week_end.strftime('%b %d, %Y')}"
         refresh_current_view()
     
     def refresh_current_view():
@@ -351,8 +239,7 @@ def main(page: ft.Page):
     
     # Custom Calendar Implementation
     def create_custom_calendar(year, month, on_date_select_callback):
-        import calendar
-        # Calender starting on Monday (0)
+        # Calendar starting on Monday (0)
         cal = calendar.Calendar(firstweekday=0)
         month_days = list(cal.itermonthdays2(year, month))
         
@@ -526,17 +413,6 @@ def main(page: ft.Page):
             ft.Row([calendar_container], alignment=ft.MainAxisAlignment.CENTER)
         ])
 
-    # ===== DASHBOARD VIEW =====
-    def create_dashboard_view():
-        nonlocal metrics_row, income_table, expenses_table, bills_table, savings_table, investments_table
-        
-        # ... (rest of dashboard view code matches existing)
-
-    # Note: Using replace_file_content, I need to be careful not to delete the huge dashboard function.
-    # I will target specific blocks. This replacement handles the refresh logic and state.
-    
-    # [SKIP TO STATS VIEW MODIFICATION]
-    
     # Stats navigation helper functions (must be defined before create_stats_week_nav)
     def navigate_stats_week(delta: int):
         nonlocal stats_week_start, stats_week_end
@@ -599,7 +475,6 @@ def main(page: ft.Page):
                 stats_calendar_container.update()
 
         def create_stats_calendar_renderer(year, month):
-            import calendar
             cal = calendar.Calendar(firstweekday=0)
             month_days = list(cal.itermonthdays2(year, month))
             
@@ -736,17 +611,6 @@ def main(page: ft.Page):
             ft.Row([stats_calendar_container], alignment=ft.MainAxisAlignment.CENTER)
         ])
 
-    # ===== HISTORY VIEW =====
-    # ... (existing history view)
-
-    # ===== NAVIGATION =====
-    def on_nav_change(e):
-        """Handle navigation rail selection changes."""
-        nonlocal current_view_index
-        index = e.control.selected_index
-        current_view_index = index
-        refresh_current_view()
-    
     # ===== DASHBOARD VIEW =====
     def create_dashboard_view():
         nonlocal metrics_row, income_table, expenses_table, bills_table, savings_table, investments_table
@@ -1354,7 +1218,6 @@ def main(page: ft.Page):
                 budget_calendar_container.update()
 
         def create_budget_calendar_renderer(year, month):
-            import calendar
             cal = calendar.Calendar(firstweekday=0)
             month_days = list(cal.itermonthdays2(year, month))
             
@@ -1722,8 +1585,7 @@ def main(page: ft.Page):
         )
         
         # Year and Month pickers for monthly recurrence
-        from datetime import date as _date
-        _current_year = _date.today().year
+        _current_year = datetime.now().year
         
         year_dropdown = ft.Dropdown(
             label="Year",
@@ -1893,7 +1755,6 @@ def main(page: ft.Page):
             page.update()
         
         def build_transaction_rows():
-            import pandas as pd
             rows = []
             # Filter transactions by shared week state
             if len(transactions_df) > 0 and "Date" in transactions_df.columns:
