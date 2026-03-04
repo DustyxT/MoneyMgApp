@@ -1,18 +1,16 @@
-Date,Category,Type,Actual
-2026-01-23,Rent,Expenses,0.0
-2026-01-23,Groceries,Expenses,0.0
-2026-01-23,Gym,Expenses,0.0
-2026-01-23,Insurance,Expenses,0.0
-2026-01-23,Utilities,Expenses,0.0
-2026-01-23,Eat Out,Expenses,0.0
-2026-01-23,Subscriptions,Expenses,0.0
-2026-01-23,Phone Bill,Expenses,0.0
-2026-01-23,Gifts,Expenses,0.0
-2026-01-23,Fuel,Expenses,0.0
-2026-01-23,Shopping,Expenses,0.0
-2026-01-23,Internet Bill,Expenses,0.0
-2026-02-23,Part Time Job,Income,85.0
-2026-02-23,Groceries,Expenses,10.0
-2026-02-23,Gym,Expenses,5.0
-2026-02-23,Emergency,Savings,5.0
-2026-02-23,Family Remittance,Savings,5.0
+Date,Category,Type,Actual,id,Note
+2026-02-26,Part Time Job,Income,600.0,cf10b245-3f5d-42da-92c5-733972b501dc,Updated from dashboard
+2026-02-26,Groceries,Expenses,100.0,db8ee1b6-5c90-4608-a910-80fdd1ab1c9d,Updated from dashboard
+2026-02-26,Eat Out,Expenses,20.0,c6f09631-158d-493a-80ed-5080255774ed,Updated from dashboard
+2026-02-26,Subscriptions,Expenses,10.0,fcf74a92-622b-4391-ade6-20ee1c1d34bc,Updated from dashboard
+2026-02-26,Internet,Bills,10.0,f4e7d9a7-de79-47b0-9bd7-8fabb0f7b6cb,Updated from dashboard
+2026-02-26,Emergency,Savings,50.0,13afc5bd-1789-4c88-99c2-ac159a7f6335,Updated from dashboard
+2026-02-26,Gym,Expenses,20.0,3fde20dd-cb8f-48db-a8fc-f7d93cb24462,Updated from dashboard
+2026-02-26,Rent,Expenses,0.0,24882b9d-00b7-4a13-a666-f29f4f7c995e,Updated from dashboard
+2026-02-26,Shopping,Expenses,20.0,1c57bb0b-ba4a-4215-a25c-072bd0eb31ee,Updated from dashboard
+2026-02-26,Stock Market,Investments,30.0,420da7f1-f244-4966-808c-bb64b1627a9d,Updated from dashboard
+2026-02-26,Cryptocurrency,Investments,20.0,338b2e9d-d347-4010-9f67-8878b1e5aca1,Updated from dashboard
+2026-02-26,Family Remittance,Savings,10.0,3455e91d-6e1f-4493-aaf6-efde032ed421,Updated from dashboard
+2026-02-26,Uni fees,Savings,100.0,99c7650e-c8c5-4dca-b6a5-87a75425e410,Updated from dashboard
+2026-02-26,Home Deposit,Savings,0.0,66011831-6aac-49ca-bf70-a31ae3f37dfd,Updated from dashboard
+2026-02-23,hh,Income,1.0,47ea8959-7321-4490-9288-3fe3d6618baa,
