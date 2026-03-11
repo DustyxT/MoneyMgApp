@@ -101,8 +101,22 @@ def save_transactions(df: pd.DataFrame):
     df.to_csv(TRANSACTIONS_FILE, index=False)
 
 
+def _ensure_category_in_budget(category: str, cat_type: str):
+    """Add category to budget_config if it doesn't already exist."""
+    budget = load_budget_config()
+    if category not in budget["Category"].values:
+        new_row = pd.DataFrame([{
+            "Category": category,
+            "Type": cat_type,
+            "Budget": 0,
+        }])
+        budget = pd.concat([budget, new_row], ignore_index=True)
+        save_budget_config(budget)
+
+
 def add_transaction(date: str, category: str, cat_type: str, amount: float, note: str = "") -> str:
     """Add a new transaction and return its ID."""
+    _ensure_category_in_budget(category, cat_type)
     df = load_transactions()
     new_id = str(uuid.uuid4())
     
@@ -154,6 +168,7 @@ def save_recurring_transactions(df: pd.DataFrame):
 def add_recurring_transaction(category: str, cat_type: str, amount: float, recurrence: str, note: str = "", target_month: str = "") -> str:
     """Add a new recurring transaction. Recurrence: 'permanent' or 'monthly'.
     For 'monthly', target_month should be 'YYYY-MM' format."""
+    _ensure_category_in_budget(category, cat_type)
     df = load_recurring_transactions()
     new_id = str(uuid.uuid4())
     new_row = pd.DataFrame([{
@@ -338,9 +353,16 @@ def get_weekly_data(start_date: str, end_date: str) -> Dict[str, Any]:
             for cat in type_trans["Category"].unique():
                 if cat not in budget_cat_names:
                     actual = type_trans[type_trans["Category"] == cat]["Actual"].sum()
+                    # Check for weekly override for custom categories too
+                    override_amount = None
+                    if len(weekly_overrides) > 0:
+                        mask = (weekly_overrides["WeekStart"] == start_date) & (weekly_overrides["Category"] == cat)
+                        if mask.any():
+                            override_amount = weekly_overrides[mask].iloc[0]["Amount"]
+                    weekly_budget = override_amount if override_amount is not None else 0
                     result.append({
                         "category": cat,
-                        "budget": 0,  # No budget for custom categories
+                        "budget": round(weekly_budget, 2),
                         "actual": round(actual, 2),
                     })
         

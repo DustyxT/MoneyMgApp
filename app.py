@@ -4,6 +4,8 @@ Built with Flet (Flutter for Python)
 """
 
 import calendar
+import os
+import sys
 import flet as ft
 from pathlib import Path
 from datetime import datetime, timedelta
@@ -186,6 +188,14 @@ def main(page: ft.Page):
     page.window.height = 800
     page.window.min_width = 900
     page.window.min_height = 600
+    
+    # Handle window close: fully terminate the process
+    def on_window_event(e):
+        if e.data == "close":
+            page.window.destroy()
+            os._exit(0)
+    
+    page.window.on_event = on_window_event
     
     # Custom theme
     page.theme = ft.Theme(
